@@ -22,14 +22,16 @@ pip install -e .
 ## Usage
 
 Place per-device variables under ``host_vars``. For example the file
-``host_vars/router1.json`` contains clock data, interface definitions and
-BGP neighbors:
+``host_vars/router1.json`` contains system clock data, interface definitions
+and BGP neighbors:
 
 ```json
 {
-  "clock": {
-    "timezone": "UTC",
-    "ntp_servers": ["192.0.2.10", "192.0.2.11"]
+  "system": {
+    "clock": {
+      "timezone": "UTC",
+      "ntp_servers": ["192.0.2.10", "192.0.2.11"]
+    }
   },
   "interfaces": [
     {
@@ -61,4 +63,15 @@ Run the CLI to generate configuration (it looks in ``host_vars`` by default):
 
 ```bash
 openconf-cli router1
+```
+
+Group variables can supply defaults for multiple hosts. A simple file
+``group_vars/all.yml`` might look like:
+
+```yaml
+system:
+  clock:
+    timezone: UTC
+    ntp_servers:
+      - 192.0.2.20
 ```

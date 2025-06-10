@@ -1,8 +1,10 @@
 {
   "hostname": "router1",
-  "clock": {
-    "timezone": "UTC",
-    "ntp_servers": ["192.0.2.10", "192.0.2.11"]
+  "system": {
+    "clock": {
+      "timezone": "UTC",
+      "ntp_servers": ["192.0.2.10", "192.0.2.11"]
+    }
   },
   "interfaces": [
     {
