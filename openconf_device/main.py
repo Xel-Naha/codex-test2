@@ -18,6 +18,7 @@ from .models import (
     DeviceConfig,
     Interface,
     ClockConfig,
+    SystemConfig,
     BgpConfig,
     BgpNeighbor,
 )
@@ -61,9 +62,11 @@ def load_host_config(hostname: str, vars_dir: str = "host_vars") -> DeviceConfig
     for iface_data in data.get("interfaces", []):
         iface = Interface(**iface_data)
         device.add_interface(iface)
-    clock_data = data.get("clock")
+
+    system_data = data.get("system", {})
+    clock_data = system_data.get("clock")
     if clock_data:
-        device.clock = ClockConfig(**clock_data)
+        device.system = SystemConfig(clock=ClockConfig(**clock_data))
     bgp_data = data.get("bgp")
     if bgp_data:
         bgp = BgpConfig(asn=bgp_data.get("asn", 0))

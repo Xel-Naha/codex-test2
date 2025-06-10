@@ -8,6 +8,7 @@ from .models import (
     DeviceConfig,
     Interface,
     ClockConfig,
+    SystemConfig,
     BgpConfig,
     BgpNeighbor,
 )
@@ -37,7 +38,9 @@ class NetworkDevice:
     def set_clock(self, timezone: str, ntp_servers: Optional[List[str]] = None) -> None:
         """Configure system clock."""
         ntp = ntp_servers or []
-        self.config.clock = ClockConfig(timezone=timezone, ntp_servers=ntp)
+        if self.config.system is None:
+            self.config.system = SystemConfig()
+        self.config.system.clock = ClockConfig(timezone=timezone, ntp_servers=ntp)
 
     def set_bgp(self, asn: int, neighbors: Optional[List[BgpNeighbor]] = None) -> None:
         """Set BGP ASN and optional neighbors."""

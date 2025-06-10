@@ -16,6 +16,17 @@ class ClockConfig:
 
 
 @dataclass
+class SystemConfig:
+    """System-wide settings."""
+    clock: Optional[ClockConfig] = None
+
+    def to_dict(self) -> dict:
+        return {
+            "clock": self.clock.to_dict() if self.clock else None,
+        }
+
+
+@dataclass
 class BgpNeighbor:
     """BGP neighbor configuration."""
     peer_ip: str
@@ -68,7 +79,7 @@ class DeviceConfig:
     """A collection of interfaces forming device configuration."""
     hostname: str
     interfaces: List[Interface] = field(default_factory=list)
-    clock: Optional[ClockConfig] = None
+    system: Optional[SystemConfig] = None
     bgp: Optional[BgpConfig] = None
 
     def add_interface(self, interface: Interface) -> None:
@@ -78,6 +89,6 @@ class DeviceConfig:
         return {
             "hostname": self.hostname,
             "interfaces": [iface.to_dict() for iface in self.interfaces],
-            "clock": self.clock.to_dict() if self.clock else None,
+            "system": self.system.to_dict() if self.system else None,
             "bgp": self.bgp.to_dict() if self.bgp else None,
         }
