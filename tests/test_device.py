@@ -33,5 +33,10 @@ class TestNetworkDevice(unittest.TestCase):
         self.assertIn('ip address 10.0.0.1/24', output)
         self.assertIn('neighbor 203.0.113.3 remote-as 300', output)
 
+    def test_invalid_vendor(self):
+        """Unsupported vendor strings should raise ValueError."""
+        with self.assertRaises(ValueError):
+            self.device.to_vendor('Juniper.junos')
+
 if __name__ == '__main__':
     unittest.main()

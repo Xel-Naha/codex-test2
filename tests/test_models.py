@@ -27,5 +27,10 @@ class TestModels(unittest.TestCase):
             'bgp': bgp.to_dict()
         })
 
+    def test_interface_missing_required_field(self):
+        """Creating Interface without name should raise TypeError."""
+        with self.assertRaises(TypeError):
+            Interface()
+
 if __name__ == '__main__':
     unittest.main()

@@ -8,5 +8,10 @@ class TestMain(unittest.TestCase):
         self.assertEqual(len(cfg.interfaces), 2)
         self.assertEqual(cfg.bgp.asn, 100)
 
+    def test_load_missing_host_config(self):
+        """Loading a non-existent host file should raise FileNotFoundError."""
+        with self.assertRaises(FileNotFoundError):
+            load_host_config('nonexistent', vars_dir='host_vars')
+
 if __name__ == '__main__':
     unittest.main()
