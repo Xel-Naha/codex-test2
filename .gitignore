@@ -1,6 +1,2 @@
 __pycache__/
 *.pyc
-intended/configs/*
-!intended/configs/.gitkeep
-intended/structured_config/*
-!intended/structured_config/.gitkeep

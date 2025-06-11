@@ -1,75 +1,77 @@
-# OpenConf Device with Ansible
+# OpenConf Device Example
 
-This repository demonstrates generating network device configurations using an
-OpenConf-style data model and **Ansible**. Variables are organised exactly as in
-an Ansible project with `group_vars` and `host_vars` directories.
-
-Configuration is hierarchical:
-
-1. `group_vars/all.yml` – global defaults
-2. `group_vars/<site>.yml` – site specific settings (optional)
-3. `host_vars/<hostname>.yml` – device specific overrides
+This repository demonstrates a minimal Python project for configuring
+network devices using an **OpenConf-style** data structure.  It now uses
+an Ansible-like directory layout with ``group_vars`` and ``host_vars``.
+Each device has a JSON or YAML file inside ``host_vars``.
+The command line interface reads one of these files and converts it
+into OpenConf formatted JSON. Example configuration includes system clock
+settings, interface addresses and a simple BGP ASN/neighbor definition.
 
 ## Requirements
 
-* Ansible 2.12+
+* Python 3.8+
+* `pyyaml`
 
-Install Ansible with pip if needed:
+Install the project in editable mode:
 
 ```bash
-pip install ansible
+pip install -e .
 ```
 
 ## Usage
 
-Define your inventory. This repo includes a simple `inventory.ini` containing a
-single device named `router1`.
+Place per-device variables under ``host_vars``. For example the file
+``host_vars/router1.json`` contains system clock data, interface definitions
+and BGP neighbors:
 
-Host specific variables live under `host_vars/<hostname>.yml`. The example file
-looks like:
-
-```yaml
-site: dc1
-interfaces:
-  - name: eth0
-    description: Uplink
-    enabled: true
-    ip_address: 192.0.2.1
-    subnet_mask: 255.255.255.0
-  - name: eth1
-    description: LAN
-    enabled: true
-    ip_address: 10.0.0.1
-    subnet_mask: 255.255.255.0
-bgp:
-  neighbors:
-    - peer_ip: 203.0.113.2
-      remote_as: 200
-      description: ISP1
-    - peer_ip: 203.0.113.3
-      remote_as: 300
-      description: ISP2
+```json
+{
+  "system": {
+    "clock": {
+      "timezone": "UTC",
+      "ntp_servers": ["192.0.2.10", "192.0.2.11"]
+    }
+  },
+  "interfaces": [
+    {
+      "name": "eth0",
+      "description": "Uplink",
+      "enabled": true,
+      "ip_address": "192.0.2.1",
+      "subnet_mask": "255.255.255.0"
+    },
+    {
+      "name": "eth1",
+      "description": "LAN",
+      "enabled": true,
+      "ip_address": "10.0.0.1",
+      "subnet_mask": "255.255.255.0"
+    }
+  ],
+  "bgp": {
+    "asn": 100,
+    "neighbors": [
+      {"peer_ip": "203.0.113.2", "remote_as": 200, "description": "ISP1"},
+      {"peer_ip": "203.0.113.3", "remote_as": 300, "description": "ISP2"}
+    ]
+  }
+}
 ```
 
-Global defaults (applied to all devices) are placed in `group_vars/all.yml`:
-
-```yaml
-clock:
-  timezone: UTC
-  ntp_servers:
-    - 192.0.2.10
-    - 192.0.2.11
-bgp:
-  asn: 100
-```
-
-Run the playbook to generate configuration:
+Run the CLI to generate configuration (it looks in ``host_vars`` by default):
 
 ```bash
-ansible-playbook -i inventory.ini generate.yml -e "vendor=Cisco.ios"
+openconf-cli router1
 ```
 
-The playbook writes the structured OpenConf JSON to
-`intended/structured_config/<hostname>.json` and vendor specific configuration
-to `intended/configs/<hostname>.txt`. Use `-e vendor=Arista.eos` to render
-Arista EOS syntax or omit the variable to output raw OpenConf JSON.
+Group variables can supply defaults for multiple hosts. A simple file
+``group_vars/all.yml`` might look like:
+
+```yaml
+system:
+  clock:
+    timezone: UTC
+    ntp_servers:
+      - 192.0.2.20
+```

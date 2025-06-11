@@ -1,8 +1,5 @@
-clock:
-  timezone: UTC
-  ntp_servers:
-    - 192.0.2.10
-    - 192.0.2.11
-bgp:
-  asn: 100
-
+system:
+  clock:
+    timezone: UTC
+    ntp_servers:
+      - 192.0.2.20
