@@ -1,0 +1,9 @@
+site: dc1
+interfaces:
+  - name: eth0
+    ip_address: 192.0.2.1
+    subnet_mask: 255.255.255.0
+  - name: eth1
+    ip_address: 10.0.0.1
+    subnet_mask: 255.255.255.0
+
