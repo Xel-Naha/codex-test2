@@ -1,45 +1,32 @@
-# OpenConf Device Example
+# OpenConf Device with Ansible
 
-This repository demonstrates a minimal Python project for configuring
-network devices using an **OpenConf-style** data structure.  The layout
-mimics Ansible with `group_vars` and `host_vars`.  Configuration is
-hierarchical: a global file applies to all devices, a site (or data centre)
-file refines those settings and the host file only contains values that
-are different for that particular device.
+This repository demonstrates generating network device configurations using an
+OpenConf-style data model and **Ansible**. Variables are organised exactly as in
+an Ansible project with `group_vars` and `host_vars` directories.
+
+Configuration is hierarchical:
+
+1. `group_vars/all.yml` – global defaults
+2. `group_vars/<site>.yml` – site specific settings (optional)
+3. `host_vars/<hostname>.yml` – device specific overrides
 
 ## Requirements
 
-* Python 3.8+
-* `pyyaml`
+* Ansible 2.12+
 
-Install the project in editable mode:
+Install Ansible with pip if needed:
 
 ```bash
-pip install -e .
+pip install ansible
 ```
 
 ## Usage
 
-The loader looks for the following files in order and merges them:
+Define your inventory. This repo includes a simple `inventory.ini` containing a
+single device named `router1`.
 
-1. `group_vars/global.yml` – global defaults
-2. `group_vars/<site>.yml` – site specific settings (optional)
-3. `host_vars/<hostname>.yml` – device specific overrides (must include the `site` key)
-
-Example global file:
-
-```yaml
-clock:
-  timezone: UTC
-  ntp_servers:
-    - 192.0.2.10
-    - 192.0.2.11
-bgp:
-  asn: 100
-```
-
-
-Example host specific file (`host_vars/router1.yml`) defines interface settings and BGP neighbors:
+Host specific variables live under `host_vars/<hostname>.yml`. The example file
+looks like:
 
 ```yaml
 site: dc1
@@ -64,23 +51,25 @@ bgp:
       description: ISP2
 ```
 
-Generate the full configuration with:
+Global defaults (applied to all devices) are placed in `group_vars/all.yml`:
 
-```bash
-openconf-cli router1
+```yaml
+clock:
+  timezone: UTC
+  ntp_servers:
+    - 192.0.2.10
+    - 192.0.2.11
+bgp:
+  asn: 100
 ```
 
-You can also render configuration in a vendor specific syntax using
-the ``--vendor`` option.  Supported formats are ``Cisco.ios`` and
-``Arista.eos``.  For example:
+Run the playbook to generate configuration:
 
 ```bash
-openconf-cli router1 --vendor Cisco.ios
+ansible-playbook -i inventory.ini generate.yml -e "vendor=Cisco.ios"
 ```
 
-Running the CLI will also write the structured configuration and the
-vendor-rendered output under the `intended/` directory. The OpenConf JSON
-for the device is saved to `intended/structured_config/<hostname>.json` and
-the rendered configuration is written to `intended/configs/<hostname>.txt`.
-Use the `--output-dir` option to change this location.
-
+The playbook writes the structured OpenConf JSON to
+`intended/structured_config/<hostname>.json` and vendor specific configuration
+to `intended/configs/<hostname>.txt`. Use `-e vendor=Arista.eos` to render
+Arista EOS syntax or omit the variable to output raw OpenConf JSON.
