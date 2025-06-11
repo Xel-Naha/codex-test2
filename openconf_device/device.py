@@ -58,3 +58,68 @@ class NetworkDevice:
     def to_openconf(self) -> str:
         """Return configuration encoded as JSON."""
         return json.dumps(self.config.to_dict(), indent=2)
+
+    # New vendor rendering functionality
+    def to_vendor(self, vendor: str) -> str:
+        """Render configuration for a specific vendor."""
+        key = vendor.lower()
+        if key in {"cisco.ios", "cisco", "ios"}:
+            return self._render_cisco_ios()
+        if key in {"arista.eos", "arista", "eos"}:
+            return self._render_arista_eos()
+        raise ValueError(f"Unsupported vendor {vendor}")
+
+    # Helper rendering methods
+    def _render_cisco_ios(self) -> str:
+        lines = [f"hostname {self.config.hostname}"]
+        if self.config.system and self.config.system.clock:
+            clock = self.config.system.clock
+            lines.append(f"clock timezone {clock.timezone} 0")
+            for ntp in clock.ntp_servers:
+                lines.append(f"ntp server {ntp}")
+        for iface in self.config.interfaces:
+            lines.append(f"interface {iface.name}")
+            if iface.description:
+                lines.append(f" description {iface.description}")
+            if iface.ip_address and iface.subnet_mask:
+                lines.append(
+                    f" ip address {iface.ip_address} {iface.subnet_mask}"
+                )
+            lines.append(" no shutdown" if iface.enabled else " shutdown")
+            lines.append("!")
+        if self.config.bgp:
+            lines.append(f"router bgp {self.config.bgp.asn}")
+            for n in self.config.bgp.neighbors:
+                lines.append(f" neighbor {n.peer_ip} remote-as {n.remote_as}")
+                if n.description:
+                    lines.append(
+                        f" neighbor {n.peer_ip} description {n.description}"
+                    )
+            lines.append("!")
+        return "\n".join(lines)
+
+    def _render_arista_eos(self) -> str:
+        lines = [f"hostname {self.config.hostname}"]
+        if self.config.system and self.config.system.clock:
+            clock = self.config.system.clock
+            lines.append(f"clock timezone {clock.timezone}")
+            for ntp in clock.ntp_servers:
+                lines.append(f"ntp server {ntp}")
+        for iface in self.config.interfaces:
+            lines.append(f"interface {iface.name}")
+            if iface.description:
+                lines.append(f" description {iface.description}")
+            if iface.ip_address and iface.subnet_mask:
+                # Convert subnet mask to prefix length
+                prefix = sum(bin(int(x)).count("1") for x in iface.subnet_mask.split("."))
+                lines.append(f" ip address {iface.ip_address}/{prefix}")
+            lines.append(" no shutdown" if iface.enabled else " shutdown")
+            lines.append("!")
+        if self.config.bgp:
+            lines.append(f"router bgp {self.config.bgp.asn}")
+            for n in self.config.bgp.neighbors:
+                lines.append(f" neighbor {n.peer_ip} remote-as {n.remote_as}")
+                if n.description:
+                    lines.append(f"  description {n.description}")
+            lines.append("!")
+        return "\n".join(lines)

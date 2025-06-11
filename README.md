@@ -65,6 +65,14 @@ Run the CLI to generate configuration (it looks in ``host_vars`` by default):
 openconf-cli router1
 ```
 
+Use the ``--vendor`` option to produce vendor-formatted configuration. For
+example Cisco IOS or Arista EOS syntax:
+
+```bash
+openconf-cli router1 --vendor Cisco.ios
+openconf-cli router1 --vendor Arista.eos
+```
+
 Group variables can supply defaults for multiple hosts. A simple file
 ``group_vars/all.yml`` might look like:
 

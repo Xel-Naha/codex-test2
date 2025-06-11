@@ -32,6 +32,11 @@ def parse_args() -> argparse.Namespace:
         default="host_vars",
         help="Directory containing host variable files",
     )
+    parser.add_argument(
+        "--vendor",
+        default=None,
+        help="Render configuration for a vendor (e.g. Cisco.ios, Arista.eos)",
+    )
     return parser.parse_args()
 
 
@@ -80,7 +85,10 @@ def main() -> None:
     args = parse_args()
     device_config = load_host_config(args.hostname, args.vars_dir)
     device = NetworkDevice(device_config)
-    print(device.to_openconf())
+    if args.vendor:
+        print(device.to_vendor(args.vendor))
+    else:
+        print(device.to_openconf())
 
 
 if __name__ == "__main__":
